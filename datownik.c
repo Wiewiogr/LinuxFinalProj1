@@ -12,24 +12,31 @@ timer_t writeTimerId;
 timer_t endTimerId;
 struct timespec currentTime;
 struct itimerspec timeUntilWrite;
+float averageTime = -1;
+float deviation = 0.0;
+
+
+void convertFloatToTimeSpec(float time, struct timespec * ts)
+{
+    ts->tv_sec = floor(time);
+    ts->tv_nsec = (time - floor(time))*1000000000;
+}
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
-    timeUntilWrite.it_value.tv_sec = 1;
-    timeUntilWrite.it_value.tv_nsec = 0;
+    float time = averageTime + (1.0*rand()/RAND_MAX)*deviation*2-deviation;
+    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
 
     if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
         printf("timer_settime error\n");
 
     clock_gettime(CLOCK_REALTIME,&currentTime);
-    printf("currentTime %d.%d\n",currentTime.tv_sec, currentTime.tv_nsec);
+    printf("time : %lf, currentTime %d.%d\n",time, currentTime.tv_sec, currentTime.tv_nsec);
 }
 
 int main(int argc, char* argv[])
 {
-    float time;
-    float averageTime = -1;
-    float deviation = 0.0;
+    srand(time(NULL));
     clockid_t endTimerType = -1;
     struct itimerspec timeUntilEnd;
 
@@ -37,7 +44,6 @@ int main(int argc, char* argv[])
 
     while ((opt = getopt(argc, argv, "m:d:w:c:p:")) != -1)
     {
-//w - real c - monotoniczny p - lokalnmy procesu
         switch (opt)
         {
         case 'm':
@@ -46,13 +52,17 @@ int main(int argc, char* argv[])
         case 'd':
             deviation = strtof(optarg,NULL);
             break;
+        case 'c':
+            endTimerType = CLOCK_MONOTONIC;
+            convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
+            break;
+        case 'p':
+            endTimerType = CLOCK_PROCESS_CPUTIME_ID;
+            convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
+            break;
         case 'w':
             endTimerType = CLOCK_REALTIME;
-            time = strtof(optarg,NULL);
-            timeUntilEnd.it_value.tv_sec = floor(time);
-            timeUntilEnd.it_value.tv_nsec = (time - floor(time))*1000000000;
-           //timeUntilEnd.it_value.tv_sec = 2;
-           //timeUntilEnd.it_value.tv_nsec = 2;
+            convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
             break;
         }
     }
@@ -85,10 +95,11 @@ int main(int argc, char* argv[])
     if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
         printf("timer_settime error\n");
 
+
     if(endTimerType != -1)
     {
         sevProgramEnd.sigev_notify = SIGEV_SIGNAL;
-        sevProgramEnd.sigev_signo = SIGTERM;
+        sevProgramEnd.sigev_signo = SIGKILL;
         sevProgramEnd.sigev_value.sival_ptr = &endTimerId;
         if (timer_create(CLOCK_REALTIME, &sevProgramEnd, &endTimerId) == -1)
             printf("timer_create error\n");
