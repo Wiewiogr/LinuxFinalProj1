@@ -1,5 +1,10 @@
 #include "common.h"
 
+float randomizeTime(float averageTime ,float deviation)
+{
+    return averageTime + (1.0*rand()/RAND_MAX)*deviation*2-deviation;
+}
+
 void convertFloatToTimeSpec(float time, struct timespec * ts)
 {
     ts->tv_sec = floor(time);
@@ -22,4 +27,21 @@ void createAndSetExitTimer(struct itimerspec *timeUntilExit, clockid_t type)
             perror("timer_settime");
     }
 
+}
+
+void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, siginfo_t*, void*))
+{
+    struct sigaction sa;
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = handler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIGALRM, &sa, NULL) == -1)
+        perror("sigaction");
+
+    struct sigevent sev;
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = SIGALRM;
+    sev.sigev_value.sival_ptr = timerId;
+    if (timer_create(CLOCK_REALTIME, &sev, timerId) == -1)
+        perror("timer_create");
 }

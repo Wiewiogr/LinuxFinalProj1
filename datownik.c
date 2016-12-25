@@ -7,8 +7,6 @@
 #include <errno.h>
 #include "common.h"
 
-#define SIG SIGALRM
-
 timer_t writeTimerId;
 struct timespec currentTime;
 struct itimerspec timeUntilWrite;
@@ -17,11 +15,11 @@ float deviation = 0.0;
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
-    float time = averageTime + (1.0*rand()/RAND_MAX)*deviation*2-deviation;
+    float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
 
     if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
-        printf("timer_settime error\n");
+        perror("timer_settime");
 
     clock_gettime(CLOCK_REALTIME,&currentTime);
     printf("time : %lf, currentTime %d.%d\n",time, currentTime.tv_sec, currentTime.tv_nsec);
@@ -66,27 +64,15 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    struct sigaction sa;
-    struct sigevent sev;
+    struct sigaction sa; // ???
 
-    sa.sa_flags = SA_SIGINFO;
-    sa.sa_sigaction = timerHandler;
-    sigemptyset(&sa.sa_mask);
-    if (sigaction(SIG, &sa, NULL) == -1)
-        perror("sigaction");
+    createTimerAndRegisterHandler(&writeTimerId,timerHandler);
 
-    sev.sigev_notify = SIGEV_SIGNAL;
-    sev.sigev_signo = SIG;
-    sev.sigev_value.sival_ptr = &writeTimerId;
-    if (timer_create(CLOCK_REALTIME, &sev, &writeTimerId) == -1)
-        perror("timer_create");
-
-    timeUntilWrite.it_value.tv_sec = 1;
-    timeUntilWrite.it_value.tv_nsec = 0;
+    float time = randomizeTime(averageTime,deviation);
+    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
 
     if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
         perror("timer_settime");
-
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
