@@ -5,6 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include <errno.h>
+#include "libCommon.h"
 
 #define SIG SIGALRM
 
@@ -14,13 +15,6 @@ struct timespec currentTime;
 struct itimerspec timeUntilWrite;
 float averageTime = -1;
 float deviation = 0.0;
-
-
-void convertFloatToTimeSpec(float time, struct timespec * ts)
-{
-    ts->tv_sec = floor(time);
-    ts->tv_nsec = (time - floor(time))*1000000000;
-}
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
@@ -81,19 +75,19 @@ int main(int argc, char* argv[])
     sa.sa_sigaction = timerHandler;
     sigemptyset(&sa.sa_mask);
     if (sigaction(SIG, &sa, NULL) == -1)
-        printf("sigaction error\n");
+        perror("sigaction");
 
     sev.sigev_notify = SIGEV_SIGNAL;
     sev.sigev_signo = SIG;
     sev.sigev_value.sival_ptr = &writeTimerId;
     if (timer_create(CLOCK_REALTIME, &sev, &writeTimerId) == -1)
-        printf("timer_create error\n");
+        perror("timer_create");
 
     timeUntilWrite.it_value.tv_sec = 1;
     timeUntilWrite.it_value.tv_nsec = 0;
 
     if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
-        printf("timer_settime error\n");
+        perror("timer_settime");
 
 
     if(endTimerType != -1)
@@ -102,7 +96,7 @@ int main(int argc, char* argv[])
         sevProgramEnd.sigev_signo = SIGKILL;
         sevProgramEnd.sigev_value.sival_ptr = &endTimerId;
         if (timer_create(CLOCK_REALTIME, &sevProgramEnd, &endTimerId) == -1)
-            printf("timer_create error\n");
+            perror("timer_create");
 
         if (timer_settime(endTimerId, 0, &timeUntilEnd, NULL) == -1)
             perror("timer_settime");
