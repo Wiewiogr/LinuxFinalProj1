@@ -10,7 +10,6 @@
 #define SIG SIGALRM
 
 timer_t writeTimerId;
-timer_t endTimerId;
 struct timespec currentTime;
 struct itimerspec timeUntilWrite;
 float averageTime = -1;
@@ -69,7 +68,6 @@ int main(int argc, char* argv[])
 
     struct sigaction sa;
     struct sigevent sev;
-    struct sigevent sevProgramEnd;
 
     sa.sa_flags = SA_SIGINFO;
     sa.sa_sigaction = timerHandler;
@@ -90,17 +88,7 @@ int main(int argc, char* argv[])
         perror("timer_settime");
 
 
-    if(endTimerType != -1)
-    {
-        sevProgramEnd.sigev_notify = SIGEV_SIGNAL;
-        sevProgramEnd.sigev_signo = SIGKILL;
-        sevProgramEnd.sigev_value.sival_ptr = &endTimerId;
-        if (timer_create(CLOCK_REALTIME, &sevProgramEnd, &endTimerId) == -1)
-            perror("timer_create");
-
-        if (timer_settime(endTimerId, 0, &timeUntilEnd, NULL) == -1)
-            perror("timer_settime");
-    }
+    createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
     while(1)
         pause();
