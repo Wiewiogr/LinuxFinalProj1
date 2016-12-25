@@ -5,7 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include <errno.h>
-#include "libCommon.h"
+#include "common.h"
 
 #define SIG SIGALRM
 

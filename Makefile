@@ -12,5 +12,5 @@ generator.o: generator.c
 odbiorca.o: odbiorca.c
 	gcc -o odbiorca.o odbiorca.c
 
-libCommon.so : libCommon.c
-	gcc -shared -o libCommon.so libCommon.c -lm
+libCommon.so : common.c
+	gcc -shared -o libCommon.so common.c -lm
