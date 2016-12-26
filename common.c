@@ -15,6 +15,7 @@ void createAndSetExitTimer(struct itimerspec *timeUntilExit, clockid_t type)
 {
     if(type != -1)
     {
+        struct sigaction sa;
         timer_t endTimerId;
         struct sigevent sevProgramEnd;
         sevProgramEnd.sigev_notify = SIGEV_SIGNAL;
