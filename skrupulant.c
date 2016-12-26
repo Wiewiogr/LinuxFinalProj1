@@ -50,11 +50,7 @@ int main(int argc, char* argv[])
     if((fd = open(fifoPath,O_RDWR))== -1)
         perror("open");
 
-    struct pollfd fds;
-    fds.fd = fd;
-    fds.events = POLLIN;
-    fds.revents = 0;
-
+    struct pollfd fds = createPollfdStruct(fd);
     int res;
 
     while(1)
@@ -71,9 +67,6 @@ int main(int argc, char* argv[])
         {
             if(checkAndPrintPollErrors(fds.revents))
                 break;
-            printf("zeruje revents!!\n");
-            fds.revents = 0;
-            printf("revent : %d\n",fds.revents);
         }
     }
     close(fd);

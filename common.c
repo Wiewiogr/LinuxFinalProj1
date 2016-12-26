@@ -80,3 +80,12 @@ extern bool checkAndPrintPollErrors(short revents)
     }
     return res;
 }
+
+extern struct pollfd createPollfdStruct(int fd)
+{
+    struct pollfd fds;
+    fds.fd = fd;
+    fds.events = POLLIN;
+    fds.revents = 0;
+    return fds;
+}

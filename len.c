@@ -9,16 +9,16 @@
 #include <errno.h>
 #include "common.h"
 
-timer_t writeTimerId;
-struct itimerspec timeUntilWrite;
+timer_t stopTimerId;
+struct itimerspec timeUntilStop;
 float averageTime = -1;
 float deviation = 0.0;
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
     float time = randomizeTime(averageTime,deviation);
-    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
-    setTimer(writeTimerId,&timeUntilWrite);
+    convertFloatToTimeSpec(time,&timeUntilStop.it_value);
+    setTimer(stopTimerId,&timeUntilStop);
 
     kill(getpid(),SIGSTOP);
 
@@ -66,21 +66,18 @@ int main(int argc, char* argv[])
         printf("fifo path : %s\n", fifoPath);
     }
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
-//
-    createTimerAndRegisterHandler(&writeTimerId,timerHandler);
+
+    createTimerAndRegisterHandler(&stopTimerId,timerHandler);
 
     float time = randomizeTime(averageTime,deviation);
-    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
-    setTimer(writeTimerId,&timeUntilWrite);
-//
+    convertFloatToTimeSpec(time,&timeUntilStop.it_value);
+    setTimer(stopTimerId,&timeUntilStop);
+
     int fd;
     if((fd = open(fifoPath,O_RDWR))== -1)
         perror("open");
 
-    struct pollfd fds;
-    fds.fd = fd;
-    fds.events = POLLIN;
-    fds.revents = 0;
+    struct pollfd fds = createPollfdStruct(fd);
 
     int res;
     struct timespec timeBetweenPolls = {0,500000000};
@@ -103,9 +100,6 @@ int main(int argc, char* argv[])
             {
                 if(checkAndPrintPollErrors(fds.revents))
                     break;
-                printf("zeruje revents!!\n");
-                fds.revents = 0;
-                printf("revent : %d\n",fds.revents);
             }
         }
     }

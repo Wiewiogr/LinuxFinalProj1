@@ -21,3 +21,4 @@ extern void showTimeDifferenceReport(struct timespec*);
 
 extern bool checkAndPrintPollErrors(short revents);
 
+extern struct pollfd createPollfdStruct(int fd);
