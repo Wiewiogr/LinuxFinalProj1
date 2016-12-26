@@ -12,6 +12,9 @@ generator.o: generator.c
 odbiornik.o: odbiornik.c libCommon.so
 	gcc -Wl,-rpath=./ -o odbiornik.o odbiornik.c -L./ -lCommon
 
+skrupulant.o: skrupulant.c libCommon.so
+	gcc -Wl,-rpath=./ -o skrupulant.o skrupulant.c -L./ -lCommon
+
 libCommon.so : common.c
 	gcc -shared -o libCommon.so common.c -lm -lrt
 
