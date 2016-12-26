@@ -59,3 +59,24 @@ extern void showTimeDifferenceReport(struct timespec* time)
     printf("!!REPORT!!! sec : %d nsec: %d \n",time->tv_sec, time->tv_nsec);
 
 }
+
+extern bool checkAndPrintPollErrors(short revents)
+{
+    bool res = false;
+    if(revents & POLLERR)
+    {
+        printf("POLLERR\n");
+        res = true;
+    }
+    else if(revents & POLLNVAL)
+    {
+        printf("POLLNVAL\n");
+        res = true;
+    }
+    else if(revents & POLLHUP)
+    {
+        printf("POLLHUP\n");
+        res = true;
+    }
+    return res;
+}

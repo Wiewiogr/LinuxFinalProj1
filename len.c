@@ -9,6 +9,21 @@
 #include <errno.h>
 #include "common.h"
 
+timer_t writeTimerId;
+struct itimerspec timeUntilWrite;
+float averageTime = -1;
+float deviation = 0.0;
+
+void timerHandler(int sig, siginfo_t *si, void *uc)
+{
+    float time = randomizeTime(averageTime,deviation);
+    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
+    setTimer(writeTimerId,&timeUntilWrite);
+
+    kill(getpid(),SIGSTOP);
+
+}
+
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
@@ -22,6 +37,12 @@ int main(int argc, char* argv[])
     {
         switch (opt)
         {
+        case 'm':
+            averageTime = strtof(optarg,NULL);
+            break;
+        case 'd':
+            deviation = strtof(optarg,NULL);
+            break;
         case 'c':
             endTimerType = CLOCK_MONOTONIC;
             convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
@@ -45,7 +66,13 @@ int main(int argc, char* argv[])
         printf("fifo path : %s\n", fifoPath);
     }
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
+//
+    createTimerAndRegisterHandler(&writeTimerId,timerHandler);
 
+    float time = randomizeTime(averageTime,deviation);
+    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
+    setTimer(writeTimerId,&timeUntilWrite);
+//
     int fd;
     if((fd = open(fifoPath,O_RDWR))== -1)
         perror("open");
@@ -56,24 +83,30 @@ int main(int argc, char* argv[])
     fds.revents = 0;
 
     int res;
+    struct timespec timeBetweenPolls = {0,500000000};
 
     while(1)
     {
-        res = poll(&fds,1,-1);
-        printf("res %d\n revent : %d\n",res,fds.revents);
-        if(fds.revents & POLLIN)
+        nanosleep(&timeBetweenPolls,NULL);
+
+        res = poll(&fds,1,0);
+        if(res == 1)
         {
-            struct timespec buffer;
-            read(fds.fd,&buffer,sizeof(buffer));
-            showTimeDifferenceReport(&buffer);
-        }
-        else
-        {
-            if(checkAndPrintPollErrors(fds.revents))
-                break;
-            printf("zeruje revents!!\n");
-            fds.revents = 0;
-            printf("revent : %d\n",fds.revents);
+            printf("res %d\n revent : %d\n",res,fds.revents);
+            if(fds.revents & POLLIN)
+            {
+                struct timespec buffer;
+                read(fds.fd,&buffer,sizeof(buffer));
+                showTimeDifferenceReport(&buffer);
+            }
+            else
+            {
+                if(checkAndPrintPollErrors(fds.revents))
+                    break;
+                printf("zeruje revents!!\n");
+                fds.revents = 0;
+                printf("revent : %d\n",fds.revents);
+            }
         }
     }
     close(fd);

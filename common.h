@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <stdbool.h>
+#include <poll.h>
 
 extern float randomizeTime(float,float);
 
@@ -16,4 +18,6 @@ extern void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, 
 extern void setTimer(timer_t,struct itimerspec*);
 
 extern void showTimeDifferenceReport(struct timespec*);
+
+extern bool checkAndPrintPollErrors(short revents);
 

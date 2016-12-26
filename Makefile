@@ -1,4 +1,4 @@
-all: powielacz.c datownik.c generator.c odbiorca.c
+all: powielacz.c datownik.c generator.c odbiornik.c
 
 powielacz.o: powielacz.c
 	gcc -o powielacz.o powielacz.c
@@ -14,6 +14,9 @@ odbiornik.o: odbiornik.c libCommon.so
 
 skrupulant.o: skrupulant.c libCommon.so
 	gcc -Wl,-rpath=./ -o skrupulant.o skrupulant.c -L./ -lCommon
+
+len.o: len.c libCommon.so
+	gcc -Wl,-rpath=./ -o len.o len.c -L./ -lCommon
 
 libCommon.so : common.c
 	gcc -shared -o libCommon.so common.c -lm -lrt
