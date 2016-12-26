@@ -45,3 +45,10 @@ void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, siginfo
     if (timer_create(CLOCK_REALTIME, &sev, timerId) == -1)
         perror("timer_create");
 }
+
+extern void setTimer(timer_t timerId,struct itimerspec *timeSpec)
+{
+    if (timer_settime(timerId, 0, timeSpec, NULL) == -1)
+        perror("timer_settime");
+
+}

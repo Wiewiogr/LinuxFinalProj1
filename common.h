@@ -12,3 +12,5 @@ extern void convertFloatToTimeSpec(float time, struct timespec * ts);
 extern void createAndSetExitTimer(struct itimerspec* , clockid_t type);
 
 extern void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, siginfo_t*, void*));
+
+extern void setTimer(timer_t,struct itimerspec*);

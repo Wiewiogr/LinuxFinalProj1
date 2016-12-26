@@ -18,8 +18,7 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
 
-    if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
-        perror("timer_settime");
+    setTimer(writeTimerId,&timeUntilWrite);
 
     clock_gettime(CLOCK_REALTIME,&currentTime);
     printf("time : %lf, currentTime %d.%d\n",time, currentTime.tv_sec, currentTime.tv_nsec);
@@ -70,9 +69,7 @@ int main(int argc, char* argv[])
 
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
-
-    if (timer_settime(writeTimerId, 0, &timeUntilWrite, NULL) == -1)
-        perror("timer_settime");
+    setTimer(writeTimerId,&timeUntilWrite);
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
