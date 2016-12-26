@@ -15,19 +15,23 @@ float averageTime = -1;
 float deviation = 0.0;
 char fifoPath[30];
 
-void removeFilesWritePriviliges()
+void removeFilesWritePriviliges(char* path)
 {
     printf("zabierz prawa do zapisu\n");
+    chmod(path,00444);
 }
 
-void removeFile()
+void removeFile(char* path)
 {
+    remove(path);
     printf("usun plik\n");
 }
 
-void replaceFifoWithRegularFile()
+void replaceFifoWithRegularFile(char* path)
 {
     printf("podmien plik\n");
+    remove(path);
+    creat(path,00666);
 }
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
@@ -40,17 +44,15 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
     switch(choice)
     {
     case 0:
-        removeFilesWritePriviliges();
+        removeFilesWritePriviliges(fifoPath);
         break;
     case 1:
-        removeFile();
+        removeFile(fifoPath);
         break;
     case 2:
-        replaceFifoWithRegularFile();
+        replaceFifoWithRegularFile(fifoPath);
         break;
     }
-
-    //destrukcja buahaha
 }
 
 int main(int argc, char* argv[])
