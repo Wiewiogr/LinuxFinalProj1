@@ -84,8 +84,12 @@ int main(int argc, char* argv[])
 
     while(1)
     {
+        if(!isFifo(fifoPath))
+        {
+            printf("Not fifo ;/\n");
+            break;
+        }
         nanosleep(&timeBetweenPolls,NULL);
-
         res = poll(&fds,1,0);
         if(res == 1)
         {

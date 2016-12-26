@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <poll.h>
 
 extern float randomizeTime(float,float);
@@ -23,3 +25,5 @@ extern void showTimeDifferenceReport(struct timespec*);
 extern bool checkAndPrintPollErrors(short revents);
 
 extern struct pollfd createPollfdStruct(int fd);
+
+extern bool isFifo(char* path);

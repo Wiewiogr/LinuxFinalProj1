@@ -55,7 +55,12 @@ int main(int argc, char* argv[])
 
     while(1)
     {
-        res = poll(&fds,1,-1);
+        if(!isFifo(fifoPath))
+        {
+            printf("Not fifo ;/\n");
+            break;
+        }
+        res = poll(&fds,1,-1); // a moze -1=>0 ? wtedy powyższy warunek zadziała, ale procek będzie musiał cały czas działać ;/
         printf("res %d\n revent : %d\n",res,fds.revents);
         if(fds.revents & POLLIN)
         {

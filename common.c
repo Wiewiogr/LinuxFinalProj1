@@ -47,20 +47,20 @@ void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, siginfo
         perror("timer_create");
 }
 
-extern void setTimer(timer_t timerId,struct itimerspec *timeSpec)
+void setTimer(timer_t timerId,struct itimerspec *timeSpec)
 {
     if (timer_settime(timerId, 0, timeSpec, NULL) == -1)
         perror("timer_settime");
 
 }
 
-extern void showTimeDifferenceReport(struct timespec* time)
+void showTimeDifferenceReport(struct timespec* time)
 {
     printf("!!REPORT!!! sec : %d nsec: %d \n",time->tv_sec, time->tv_nsec);
 
 }
 
-extern bool checkAndPrintPollErrors(short revents)
+bool checkAndPrintPollErrors(short revents)
 {
     bool res = false;
     if(revents & POLLERR)
@@ -81,7 +81,7 @@ extern bool checkAndPrintPollErrors(short revents)
     return res;
 }
 
-extern struct pollfd createPollfdStruct(int fd)
+struct pollfd createPollfdStruct(int fd)
 {
     struct pollfd fds;
     fds.fd = fd;
@@ -89,3 +89,18 @@ extern struct pollfd createPollfdStruct(int fd)
     fds.revents = 0;
     return fds;
 }
+
+
+bool isFifo(char* path)
+{
+    struct stat sb;
+    if (stat(path, &sb) == -1)
+    {
+    perror("stat");
+    return false;
+    }
+    if(!S_ISFIFO(sb.st_mode))
+        return false;
+    return true;
+}
+

@@ -41,18 +41,23 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
     setTimer(destructionTimerId,&timeUntilDestruction);
     int choice = rand() % 3;
 
-    switch(choice)
+    if(isFifo(fifoPath))
     {
-    case 0:
-        removeFilesWritePriviliges(fifoPath);
-        break;
-    case 1:
-        removeFile(fifoPath);
-        break;
-    case 2:
-        replaceFifoWithRegularFile(fifoPath);
-        break;
+        switch(choice)
+        {
+        case 0:
+            removeFilesWritePriviliges(fifoPath);
+            break;
+        case 1:
+            removeFile(fifoPath);
+            break;
+        case 2:
+            replaceFifoWithRegularFile(fifoPath);
+            break;
+        }
     }
+    else
+        printf("not fifo ;/\n");
 }
 
 int main(int argc, char* argv[])
