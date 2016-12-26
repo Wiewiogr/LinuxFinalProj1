@@ -65,26 +65,31 @@ int main(int argc, char* argv[])
         printf("res %d\n revent : %d\n",res,fds.revents);
         if(fds.revents & POLLIN)
         {
-            char buffer[100];
-            read(fds.fd,buffer,100);
-            printf("from fd : %d read : %s\n",fds.fd,buffer);
+            struct timespec buffer;
+            read(fds.fd,&buffer,sizeof(buffer));
+            printf("from fd : %d sec : %d nsec: %d \n",fds.fd,buffer.tv_sec, buffer.tv_nsec);
         }
-        else if(fds.revents & POLLERR)
+        else
         {
-            printf("from fd %d POLLERR",fds.fd);
+            if(fds.revents & POLLERR)
+            {
+                printf("from fd %d POLLERR",fds.fd);
+            }
+            else if(fds.revents & POLLNVAL)
+            {
+                printf("from fd %d POLLNVAL",fds.fd);
+            }
+            else if(fds.revents & POLLHUP)
+            {
+                printf("from fd %d POLLHUP",fds.fd);
+            }
+            break;
+            printf("zeruje revents!!\n");
+            fds.revents = 0;
+            printf("revent : %d\n",fds.revents);
         }
-        else if(fds.revents & POLLNVAL)
-        {
-            printf("from fd %d POLLNVAL",fds.fd);
-        }
-        else if(fds.revents & POLLHUP)
-        {
-            printf("from fd %d POLLHUP",fds.fd);
-        }
-        printf("zeruje revents!!\n");
-        fds.revents = 0;
-        printf("revent : %d\n",fds.revents);
     }
+    close(fd);
 
     return 0;
 }

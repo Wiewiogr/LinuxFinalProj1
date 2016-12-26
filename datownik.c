@@ -21,7 +21,8 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
     setTimer(writeTimerId,&timeUntilWrite);
 
     clock_gettime(CLOCK_REALTIME,&currentTime);
-    printf("time : %lf, currentTime %d.%d\n",time, currentTime.tv_sec, currentTime.tv_nsec);
+    write(1,&currentTime,sizeof(currentTime));
+    fflush(stdout);
 }
 
 int main(int argc, char* argv[])
