@@ -53,3 +53,9 @@ extern void setTimer(timer_t timerId,struct itimerspec *timeSpec)
         perror("timer_settime");
 
 }
+
+extern void showTimeDifferenceReport(struct timespec* time)
+{
+    printf("!!REPORT!!! sec : %d nsec: %d \n",time->tv_sec, time->tv_nsec);
+
+}

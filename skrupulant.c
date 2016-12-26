@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
         {
             struct timespec buffer;
             read(fds.fd,&buffer,sizeof(buffer));
-            printf("from fd : %d sec : %d nsec: %d \n",fds.fd,buffer.tv_sec, buffer.tv_nsec);
+            showTimeDifferenceReport(&buffer);
         }
         else
         {
