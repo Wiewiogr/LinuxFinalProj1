@@ -18,6 +18,9 @@ skrupulant.o: skrupulant.c libCommon.so
 len.o: len.c libCommon.so
 	gcc -Wl,-rpath=./ -o len.o len.c -L./ -lCommon
 
+wandal.o: wandal.c libCommon.so
+	gcc -Wl,-rpath=./ -o wandal.o wandal.c -L./ -lCommon
+
 libCommon.so : common.c
 	gcc -shared -o libCommon.so common.c -lm -lrt
 
