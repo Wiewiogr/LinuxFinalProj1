@@ -38,3 +38,4 @@ extern bool isFifo(char* path);
 
 extern struct minMaxValues getMinMaxValuesFromString(char* str);
 
+extern float getValueFromMinMax(struct minMaxValues*);

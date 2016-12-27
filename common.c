@@ -119,9 +119,16 @@ struct minMaxValues getMinMaxValuesFromString(char* str)
         strcpy(secondValue,secondValue+1);
         minMax.max = strtof(secondValue,NULL);
     }
-
     printf("first val: %lf, second %lf\n",minMax.min,minMax.max);
-
 
     return minMax;
 }
+
+float getValueFromMinMax(struct minMaxValues* minMax)
+{
+    float difference = minMax->max - minMax->min;
+    return minMax->min + difference*(1.0*rand()/RAND_MAX);
+}
+
+
+

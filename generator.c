@@ -7,11 +7,12 @@
 #include <errno.h>
 #include "common.h"
 
-//timer_t writeTimerId;
-//struct itimerspec timeUntilWrite;
+//timer_t createTimerId;
+//struct itimerspec timeUntilCreate;
 float averageTime = -1;
 float deviation = 0.0;
 int maxNumberOfOdbiorniki;
+int numberOfOdbiorniki;
 int maxNumberOfFifos;
 char diagnosticPath[50];
 char outputPath[50];
@@ -23,9 +24,23 @@ struct minMaxValues averageOdbiorcaDParam;
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
 //    float time = randomizeTime(averageTime,deviation);
-//    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
-//
-//    setTimer(writeTimerId,&timeUntilWrite);
+//    convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
+//    setTimer(createTimerId,&timeUntilCreate);
+
+    if(numberOfOdbiorniki < maxNumberOfOdbiorniki)
+    {
+        char averageValueArg[20];
+        sprintf(averageValueArg,"-m%lf",getValueFromMinMax(&averageOdbiorcaMParam));
+        char deviationArg[20];
+        sprintf(deviationArg,"-d%lf",getValueFromMinMax(&averageOdbiorcaDParam));
+        char * odbiornikArgs[] =
+        {
+            /*name*/
+            /*args*/
+            (char *) 0
+        };
+        float odbiornikType = rand() % 4;
+    }
 }
 
 int main(int argc, char* argv[])
@@ -61,6 +76,7 @@ int main(int argc, char* argv[])
             break;
         case 'l':
             averageOdbiorcaLifetime = getMinMaxValuesFromString(optarg);
+            printf("ex val: %lf\n", getValueFromMinMax(&averageOdbiorcaLifetime));
             break;
         case 'm':
             averageOdbiorcaMParam = getMinMaxValuesFromString(optarg);
@@ -73,11 +89,11 @@ int main(int argc, char* argv[])
 
     struct sigaction sa; // ???
 
-    //createTimerAndRegisterHandler(&writeTimerId,timerHandler);
+    //createTimerAndRegisterHandler(&createTimerId,timerHandler);
 
     //float time = randomizeTime(averageTime,deviation);
-    //convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
-    //setTimer(writeTimerId,&timeUntilWrite);
+    //convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
+    //setTimer(createTimerId,&timeUntilCreate);
 
 
     while(1)
