@@ -1,7 +1,10 @@
-all: datownik.o odbiorniki
+all: generator.o datownik.o odbiorniki
 
 datownik.o: datownik.c libCommon.so
 	gcc -Wl,-rpath=./ -o datownik.o datownik.c -L./ -lCommon
+
+generator.o: generator.c libCommon.so
+	gcc -Wl,-rpath=./ -o generator.o generator.c -L./ -lCommon
 
 odbiornik.o: odbiornik.c libCommon.so
 	gcc -Wl,-rpath=./ -o odbiornik.o odbiornik.c -L./ -lCommon

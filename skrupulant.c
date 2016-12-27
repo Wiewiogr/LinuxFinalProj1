@@ -22,6 +22,10 @@ int main(int argc, char* argv[])
     {
         switch (opt)
         {
+        case 'm':
+            break;
+        case 'd':
+            break;
         case 'c':
             endTimerType = CLOCK_MONOTONIC;
             convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);

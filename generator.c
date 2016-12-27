@@ -8,10 +8,17 @@
 #include "common.h"
 
 //timer_t writeTimerId;
-//struct timespec currentTime;
 //struct itimerspec timeUntilWrite;
 float averageTime = -1;
 float deviation = 0.0;
+int maxNumberOfOdbiorniki;
+int maxNumberOfFifos;
+char diagnosticPath[50];
+char outputPath[50];
+char fifoNameTemplate[50];
+struct minMaxValues averageOdbiorcaLifetime;
+struct minMaxValues averageOdbiorcaMParam;
+struct minMaxValues averageOdbiorcaDParam;
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
@@ -19,51 +26,49 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
 //    convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
 //
 //    setTimer(writeTimerId,&timeUntilWrite);
-
 }
 
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
-    clockid_t endTimerType = -1;
-    struct itimerspec timeUntilEnd;
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "m:d:w:c:p:")) != -1)
+    while ((opt = getopt(argc, argv, "B:D:M:L:O:p:c:l:m:d:")) != -1)
     {
         switch (opt)
         {
-        case 'm':
+        case 'B':
+            maxNumberOfOdbiorniki = atoi(optarg);
+            break;
+        case 'D':
             averageTime = strtof(optarg,NULL);
             break;
-        case 'd':
+        case 'M':
             deviation = strtof(optarg,NULL);
             break;
-        case 'c':
-            endTimerType = CLOCK_MONOTONIC;
-            convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
+        case 'L':
+            strcpy(diagnosticPath,optarg);
+            break;
+        case 'O':
+            strcpy(outputPath,optarg);
             break;
         case 'p':
-            endTimerType = CLOCK_PROCESS_CPUTIME_ID;
-            convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
+            strcpy(fifoNameTemplate,optarg);
             break;
-        case 'w':
-            endTimerType = CLOCK_REALTIME;
-            convertFloatToTimeSpec(strtof(optarg,NULL),&timeUntilEnd.it_value);
+        case 'c':
+            maxNumberOfFifos = atoi(optarg);
+            break;
+        case 'l':
+            averageOdbiorcaLifetime = getMinMaxValuesFromString(optarg);
+            break;
+        case 'm':
+            averageOdbiorcaMParam = getMinMaxValuesFromString(optarg);
+            break;
+        case 'd':
+            averageOdbiorcaDParam = getMinMaxValuesFromString(optarg);
             break;
         }
-    }
-    if(optind+1 == argc)
-    {
-        char* fifoPath = (char*)malloc(sizeof(char)*(strlen(argv[optind])+1));
-        strcpy(fifoPath,argv[optind]);
-        printf("fifo path : %s\n", fifoPath);
-    }
-    if(averageTime < 0)
-    {
-        printf("Usage : %s -m float [-d float]\n",argv[0]);
-        return 0;
     }
 
     struct sigaction sa; // ???
@@ -74,7 +79,6 @@ int main(int argc, char* argv[])
     //convertFloatToTimeSpec(time,&timeUntilWrite.it_value);
     //setTimer(writeTimerId,&timeUntilWrite);
 
-    createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
     while(1)
         pause();

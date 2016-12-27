@@ -104,3 +104,24 @@ bool isFifo(char* path)
     return true;
 }
 
+struct minMaxValues getMinMaxValuesFromString(char* str)
+{
+    struct minMaxValues minMax;
+    char* secondValue;
+    minMax.min = strtof(str,&secondValue);
+
+    if( strlen(secondValue) == 0)
+    {
+        minMax.max = minMax.min;
+    }
+    else
+    {
+        strcpy(secondValue,secondValue+1);
+        minMax.max = strtof(secondValue,NULL);
+    }
+
+    printf("first val: %lf, second %lf\n",minMax.min,minMax.max);
+
+
+    return minMax;
+}
