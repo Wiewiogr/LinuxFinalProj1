@@ -6,9 +6,6 @@ datownik.o: datownik.c libCommon.so
 generator.o: generator.c libCommon.so
 	gcc -Wl,-rpath=./ -o generator.o generator.c -L./ -lCommon
 
-odbiornik.o: odbiornik.c libCommon.so
-	gcc -Wl,-rpath=./ -o odbiornik.o odbiornik.c -L./ -lCommon
-
 odbiorniki: skrupulant.o len.o wandal.o
 
 skrupulant.o: skrupulant.c libCommon.so
@@ -21,7 +18,7 @@ wandal.o: wandal.c libCommon.so
 	gcc -Wl,-rpath=./ -o wandal.o wandal.c -L./ -lCommon
 
 libCommon.so : common.c
-	gcc -shared -o libCommon.so common.c -lm -lrt
+	gcc -fPIC -shared -o libCommon.so common.c -lm -lrt
 
 clean: 
 	rm *.o *.so

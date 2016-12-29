@@ -51,13 +51,11 @@ void setTimer(timer_t timerId,struct itimerspec *timeSpec)
 {
     if (timer_settime(timerId, 0, timeSpec, NULL) == -1)
         perror("timer_settime");
-
 }
 
 void showTimeDifferenceReport(struct timespec* time)
 {
-    printf("!!REPORT!!! sec : %d nsec: %d \n",time->tv_sec, time->tv_nsec);
-
+    printf("!!REPORT!!! sec : %ld nsec: %ld \n",time->tv_sec, time->tv_nsec);
 }
 
 bool checkAndPrintPollErrors(short revents)
@@ -119,7 +117,6 @@ struct minMaxValues getMinMaxValuesFromString(char* str)
         strcpy(secondValue,secondValue+1);
         minMax.max = strtof(secondValue,NULL);
     }
-    printf("first val: %lf, second %lf\n",minMax.min,minMax.max);
 
     return minMax;
 }

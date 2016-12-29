@@ -7,8 +7,8 @@
 #include <errno.h>
 #include "common.h"
 
-//timer_t createTimerId;
-//struct itimerspec timeUntilCreate;
+timer_t createTimerId;
+struct itimerspec timeUntilCreate;
 float averageTime = -1;
 float deviation = 0.0;
 int maxNumberOfOdbiorniki;
@@ -21,25 +21,90 @@ struct minMaxValues averageOdbiorcaLifetime;
 struct minMaxValues averageOdbiorcaMParam;
 struct minMaxValues averageOdbiorcaDParam;
 
-void timerHandler(int sig, siginfo_t *si, void *uc)
+void timerHandler(int sig, siginfo_t *info, void *context)
 {
-//    float time = randomizeTime(averageTime,deviation);
-//    convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
-//    setTimer(createTimerId,&timeUntilCreate);
+    float time = randomizeTime(averageTime,deviation);
+    convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
+    setTimer(createTimerId,&timeUntilCreate);
 
     if(numberOfOdbiorniki < maxNumberOfOdbiorniki)
     {
-        char averageValueArg[20];
-        sprintf(averageValueArg,"-m%lf",getValueFromMinMax(&averageOdbiorcaMParam));
-        char deviationArg[20];
-        sprintf(deviationArg,"-d%lf",getValueFromMinMax(&averageOdbiorcaDParam));
-        char * odbiornikArgs[] =
+        if(fork() == 0)
         {
-            /*name*/
-            /*args*/
-            (char *) 0
-        };
-        float odbiornikType = rand() % 4;
+            char averageValueArg[20];
+            sprintf(averageValueArg,"-m%lf",getValueFromMinMax(&averageOdbiorcaMParam));
+            char deviationArg[20];
+            sprintf(deviationArg,"-d%lf",getValueFromMinMax(&averageOdbiorcaDParam));
+            char lifeTimeOpt;
+            switch(rand()%3)
+            {
+            case 0:
+                lifeTimeOpt = 'c';
+                break;
+            case 1:
+                lifeTimeOpt = 'p';
+                break;
+            case 2:
+                lifeTimeOpt = 'w';
+                break;
+            }
+            char lifeTimeArg[25];
+            sprintf(lifeTimeArg,"-%c%lf",lifeTimeOpt, getValueFromMinMax(&averageOdbiorcaLifetime));
+            char odbiornikName[20];
+            switch(1)//(rand()%4)
+            {
+            case 0:
+                strcpy(odbiornikName,"./wandal.o");
+                break;
+            case 1:
+            case 2:
+                strcpy(odbiornikName,"./len.o");
+                break;
+            case 3:
+                strcpy(odbiornikName,"./skrupulant.o");
+                break;
+            }
+            char fifoArg[30];
+            sprintf(fifoArg,"%s%d",fifoNameTemplate,(rand() % maxNumberOfFifos));
+            printf("%s %s %s %s %s\n", odbiornikName, averageValueArg, deviationArg, lifeTimeArg, fifoArg);
+            char * odbiornikArgs[] =
+            {
+                odbiornikName,
+                averageValueArg,
+                deviationArg,
+                lifeTimeArg,
+                fifoArg,
+                (char *) 0
+            };
+            if(execvp(odbiornikName,odbiornikArgs) == -1)
+            {
+                printf("zjeblo sie \n");
+            }
+            exit(1);
+        }
+        numberOfOdbiorniki++;
+        printf("ilosc czildrenow %d/%d\n",numberOfOdbiorniki,maxNumberOfOdbiorniki);
+
+    }
+}
+
+void childSignalHandler(int sig, siginfo_t *info, void *context)
+{
+    printf("rzeczy sie dziejo z czildrenami\n");
+    int code = info->si_code;
+    if(code == CLD_KILLED)
+    {
+        printf("Child killed\n");
+        numberOfOdbiorniki--;
+    }
+    else if(code == CLD_EXITED)
+    {
+        printf("Child exited\n");
+        numberOfOdbiorniki--;
+    }
+    else if(code == CLD_STOPPED)
+    {
+        printf("Child stopped\n");
     }
 }
 
@@ -76,7 +141,6 @@ int main(int argc, char* argv[])
             break;
         case 'l':
             averageOdbiorcaLifetime = getMinMaxValuesFromString(optarg);
-            printf("ex val: %lf\n", getValueFromMinMax(&averageOdbiorcaLifetime));
             break;
         case 'm':
             averageOdbiorcaMParam = getMinMaxValuesFromString(optarg);
@@ -87,14 +151,16 @@ int main(int argc, char* argv[])
         }
     }
 
-    struct sigaction sa; // ???
+    struct sigaction sa;
+    sa.sa_sigaction = childSignalHandler;
+    sa.sa_flags = SA_SIGINFO;
+    sigaction (SIGCHLD, &sa, NULL);
 
-    //createTimerAndRegisterHandler(&createTimerId,timerHandler);
+    createTimerAndRegisterHandler(&createTimerId,timerHandler);
 
-    //float time = randomizeTime(averageTime,deviation);
-    //convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
-    //setTimer(createTimerId,&timeUntilCreate);
-
+    float time = randomizeTime(averageTime,deviation);
+    convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
+    setTimer(createTimerId,&timeUntilCreate);
 
     while(1)
         pause();

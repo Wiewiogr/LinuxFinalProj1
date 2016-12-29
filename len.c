@@ -16,11 +16,12 @@ float deviation = 0.0;
 
 void timerHandler(int sig, siginfo_t *si, void *uc)
 {
+    printf("SDFsadfds\n");
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilStop.it_value);
     setTimer(stopTimerId,&timeUntilStop);
 
-    kill(getpid(),SIGSTOP);
+    raise(SIGSTOP);
 
 }
 
@@ -70,7 +71,10 @@ int main(int argc, char* argv[])
     createTimerAndRegisterHandler(&stopTimerId,timerHandler);
 
     float time = randomizeTime(averageTime,deviation);
+    printf("tajm : %lf\n", time);
     convertFloatToTimeSpec(time,&timeUntilStop.it_value);
+    convertFloatToTimeSpec(0,&timeUntilStop.it_interval);
+    printf("tajm : %ld.%ld\n", timeUntilStop.it_value.tv_sec, timeUntilStop.it_value.tv_nsec);
     setTimer(stopTimerId,&timeUntilStop);
 
     int fd;
