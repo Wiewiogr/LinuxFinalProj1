@@ -15,7 +15,6 @@ void createAndSetExitTimer(struct itimerspec *timeUntilExit, clockid_t type)
 {
     if(type != -1)
     {
-        struct sigaction sa;
         timer_t endTimerId;
         struct sigevent sevProgramEnd;
         sevProgramEnd.sigev_notify = SIGEV_SIGNAL;
@@ -33,7 +32,7 @@ void createAndSetExitTimer(struct itimerspec *timeUntilExit, clockid_t type)
 void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, siginfo_t*, void*))
 {
     struct sigaction sa;
-    sa.sa_flags = SA_SIGINFO;
+    sa.sa_flags = SA_SIGINFO | SA_NODEFER;
     sa.sa_sigaction = handler;
     sigemptyset(&sa.sa_mask);
     if (sigaction(SIGALRM, &sa, NULL) == -1)

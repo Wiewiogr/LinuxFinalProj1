@@ -51,7 +51,7 @@ void timerHandler(int sig, siginfo_t *info, void *context)
             char lifeTimeArg[25];
             sprintf(lifeTimeArg,"-%c%lf",lifeTimeOpt, getValueFromMinMax(&averageOdbiorcaLifetime));
             char odbiornikName[20];
-            switch(1)//(rand()%4)
+            switch(rand() % 4)
             {
             case 0:
                 strcpy(odbiornikName,"./wandal.o");
@@ -76,7 +76,9 @@ void timerHandler(int sig, siginfo_t *info, void *context)
                 fifoArg,
                 (char *) 0
             };
-            if(execvp(odbiornikName,odbiornikArgs) == -1)
+            char *newenviron[] = { NULL };
+
+            if(execve(odbiornikName,odbiornikArgs,newenviron) == -1)
             {
                 printf("zjeblo sie \n");
             }
