@@ -6,6 +6,9 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "common.h"
 
 timer_t createTimerId;
@@ -15,6 +18,7 @@ float deviation = 0.0;
 int maxNumberOfOdbiorniki;
 int numberOfOdbiorniki;
 int maxNumberOfFifos;
+int outputFileDescriptor = -1;
 char diagnosticPath[50];
 char outputPath[50];
 char fifoNameTemplate[50];
@@ -79,6 +83,11 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
                 (char *) 0
             };
             char *newenviron[] = { NULL };
+
+            if(outputFileDescriptor != -1)
+            {
+                dup2(outputFileDescriptor,1);
+            }
 
             if(execve(odbiornikName,odbiornikArgs,newenviron) == -1)
             {
@@ -173,6 +182,12 @@ int main(int argc, char* argv[])
             averageOdbiorcaDParam = getMinMaxValuesFromString(optarg);
             break;
         }
+    }
+
+    if(strlen(outputPath)!= 0)
+    {
+        outputFileDescriptor = open(outputPath,O_WRONLY | O_CREAT, 00666);
+        printf("file descriptor %d\n", outputFileDescriptor);
     }
 
     registerHandler(SIGUSR1,childContinuationHandler);

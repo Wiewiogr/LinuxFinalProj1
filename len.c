@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     if(optind+1 == argc)
     {
         strcpy(fifoPath,argv[optind]);
-        printf("fifo path : %s\n",fifoPath);
+        printf("New len with fifo path : %s\n",fifoPath);
     }
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
@@ -94,12 +94,13 @@ int main(int argc, char* argv[])
         res = poll(&fds,1,0);
         if(res == 1)
         {
-            printf("res %d\n revent : %d\n",res,fds.revents);
+            //printf("res %d\n revent : %d\n",res,fds.revents);
             if(fds.revents & POLLIN)
             {
                 struct timespec buffer;
                 read(fds.fd,&buffer,sizeof(buffer));
                 showTimeDifferenceReport(&buffer);
+                fflush(stdout);
             }
             else
             {
