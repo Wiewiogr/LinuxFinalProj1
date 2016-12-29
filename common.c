@@ -29,6 +29,37 @@ void createAndSetExitTimer(struct itimerspec *timeUntilExit, clockid_t type)
 
 }
 
+void registerHandler(int signalNumber, void(*handler)(int, siginfo_t*, void*))
+{
+    struct sigaction sa;
+    sa.sa_flags = SA_SIGINFO | SA_NODEFER;
+    sa.sa_sigaction = handler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(signalNumber, &sa, NULL) == -1)
+        perror("sigaction");
+}
+
+void createTimer(timer_t *timerId, int signalNumber)
+{
+    struct sigevent sev;
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = signalNumber;
+    sev.sigev_value.sival_ptr = timerId;
+    if (timer_create(CLOCK_REALTIME, &sev, timerId) == -1)
+        perror("timer_create");
+}
+
+void createTimerWithArgument(timer_t *timerId, int signalNumber,int arg)
+{
+    struct sigevent sev;
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = signalNumber;
+    sev.sigev_value.sival_ptr = timerId;
+    sev.sigev_value.sival_int = arg;
+    if (timer_create(CLOCK_REALTIME, &sev, timerId) == -1)
+        perror("timer_create");
+}
+
 void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, siginfo_t*, void*))
 {
     struct sigaction sa;

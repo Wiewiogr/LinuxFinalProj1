@@ -103,7 +103,8 @@ int main(int argc, char* argv[])
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
-    createTimerAndRegisterHandler(&destructionTimerId,timerHandler);
+    registerHandler(SIGALRM,timerHandler);
+    createTimer(&destructionTimerId,SIGALRM);
 
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilDestruction.it_value);

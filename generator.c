@@ -5,6 +5,7 @@
 #include <time.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "common.h"
 
 timer_t createTimerId;
@@ -21,7 +22,8 @@ struct minMaxValues averageOdbiorcaLifetime;
 struct minMaxValues averageOdbiorcaMParam;
 struct minMaxValues averageOdbiorcaDParam;
 
-void timerHandler(int sig, siginfo_t *info, void *context)
+
+void createTimerHandler(int sig, siginfo_t *info, void *context)
 {
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
@@ -51,7 +53,7 @@ void timerHandler(int sig, siginfo_t *info, void *context)
             char lifeTimeArg[25];
             sprintf(lifeTimeArg,"-%c%lf",lifeTimeOpt, getValueFromMinMax(&averageOdbiorcaLifetime));
             char odbiornikName[20];
-            switch(rand() % 4)
+            switch(1)//(rand() % 4)
             {
             case 0:
                 strcpy(odbiornikName,"./wandal.o");
@@ -92,21 +94,41 @@ void timerHandler(int sig, siginfo_t *info, void *context)
 
 void childSignalHandler(int sig, siginfo_t *info, void *context)
 {
-    printf("rzeczy sie dziejo z czildrenami\n");
     int code = info->si_code;
-    if(code == CLD_KILLED)
+    if(code == CLD_KILLED || code == CLD_EXITED)
     {
-        printf("Child killed\n");
-        numberOfOdbiorniki--;
-    }
-    else if(code == CLD_EXITED)
-    {
-        printf("Child exited\n");
+        printf("Child killed or exited\n");
         numberOfOdbiorniki--;
     }
     else if(code == CLD_STOPPED)
     {
         printf("Child stopped\n");
+        timer_t continueTimer;
+
+        createTimerWithArgument(&continueTimer,SIGUSR1,info->si_pid);
+        float time = randomizeTime(averageTime,deviation);
+        convertFloatToTimeSpec(time,&timeUntilCreate.it_value);
+        setTimer(continueTimer,&timeUntilCreate);
+
+    }
+}
+
+void childContinuationHandler(int sig, siginfo_t *info, void *context)
+{
+    int childPid = info->si_value.sival_int;
+    printf("signal arg : %d\n",childPid);//*(int*)context);
+    int status;
+    if(waitpid(childPid,&status,WNOHANG) == 0)
+    {
+        if(!WIFCONTINUED(status))
+        {
+            kill(childPid,SIGCONT);
+            printf("Killlin1\n");
+        }
+        else
+        {
+            printf(" not Killlin1\n");
+        }
     }
 }
 
@@ -153,12 +175,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    struct sigaction sa;
-    sa.sa_sigaction = childSignalHandler;
-    sa.sa_flags = SA_SIGINFO;
-    sigaction (SIGCHLD, &sa, NULL);
-
-    createTimerAndRegisterHandler(&createTimerId,timerHandler);
+    registerHandler(SIGUSR1,childContinuationHandler);
+    registerHandler(SIGCHLD,childSignalHandler);
+    registerHandler(SIGALRM,createTimerHandler);
+    createTimer(&createTimerId,SIGALRM);
 
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilCreate.it_value);

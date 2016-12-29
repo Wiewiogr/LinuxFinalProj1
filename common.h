@@ -39,3 +39,9 @@ extern bool isFifo(char* path);
 extern struct minMaxValues getMinMaxValuesFromString(char* str);
 
 extern float getValueFromMinMax(struct minMaxValues*);
+
+extern void createTimer(timer_t *timerId, int signalNumber);
+
+extern void registerHandler(int signalNumber, void(*handler)(int, siginfo_t*, void*));
+
+extern void createTimerWithArgument(timer_t *timerId, int signalNumber,int arg);

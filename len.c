@@ -67,7 +67,8 @@ int main(int argc, char* argv[])
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
-    createTimerAndRegisterHandler(&stopTimerId,timerHandler);
+    registerHandler(SIGALRM,timerHandler);
+    createTimer(&stopTimerId,SIGALRM);
 
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilStop.it_value);
