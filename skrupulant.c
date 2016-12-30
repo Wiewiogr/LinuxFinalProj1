@@ -64,8 +64,8 @@ int main(int argc, char* argv[])
             printf("Not fifo ;/\n");
             break;
         }
-        res = poll(&fds,1,-1); // a moze -1=>0 ? wtedy powyższy warunek zadziała, ale procek będzie musiał cały czas działać ;/
-        printf("res %d\n revent : %d\n",res,fds.revents);
+        res = poll(&fds,1,0); // a moze -1=>0 ? wtedy powyższy warunek zadziała, ale procek będzie musiał cały czas działać ;/
+
         if(fds.revents & POLLIN)
         {
             struct timespec buffer;
