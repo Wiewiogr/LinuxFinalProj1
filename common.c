@@ -88,6 +88,11 @@ void showTimeDifferenceReport(struct timespec* time)
     printf("!!REPORT!!! sec : %ld nsec: %ld \n",time->tv_sec, time->tv_nsec);
 }
 
+bool isPollError(short revents)
+{
+    return (revents & POLLERR) || (revents & POLLNVAL) || (revents & POLLHUP);
+}
+
 bool checkAndPrintPollErrors(short revents)
 {
     bool res = false;

@@ -43,11 +43,15 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    if(optind+1 == argc)
+
+    if(optind+1 != argc)
     {
-        strcpy(fifoPath,argv[optind]);
-        printf("fifo path : %s\n", fifoPath);
+        printf("Usage : %s <path to fifo> [-w/-c/-p <float>]\n",argv[0]);
+        exit(1);
     }
+
+    strcpy(fifoPath,argv[optind]);
+
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
     int fd;
@@ -64,8 +68,7 @@ int main(int argc, char* argv[])
             printf("Not fifo ;/\n");
             break;
         }
-        res = poll(&fds,1,0); // a moze -1=>0 ? wtedy powyższy warunek zadziała, ale procek będzie musiał cały czas działać ;/
-
+        res = poll(&fds,1,0);
         if(fds.revents & POLLIN)
         {
             struct timespec buffer;
@@ -74,11 +77,11 @@ int main(int argc, char* argv[])
         }
         else
         {
-            if(checkAndPrintPollErrors(fds.revents))
+            if(isPollError(fds.revents))
                 break;
         }
     }
-    close(fd);
 
+    close(fd);
     return 0;
 }

@@ -56,3 +56,5 @@ extern void createTimerWithArgument(timer_t *timerId, int signalNumber,int arg);
 extern void createBackupFile(struct Fifo* fifo);
 
 extern void createBackupFiles(struct Fifo* fifos,int amount);
+
+extern bool isPollError(short revents);

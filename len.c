@@ -59,11 +59,14 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    if(optind+1 == argc)
+
+    if(averageTime < 0 || (optind+1 != argc))
     {
-        strcpy(fifoPath,argv[optind]);
-        printf("New len with fifo path : %s\n",fifoPath);
+        printf("Usage : %s -m <float> <path to fifo>  [-d <float>] [-w/-c/-p <float>]\n",argv[0]);
+        exit(1);
     }
+
+    strcpy(fifoPath,argv[optind]);
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 
@@ -82,19 +85,15 @@ int main(int argc, char* argv[])
 
     int res;
     struct timespec timeBetweenPolls = {0,500000000};
-
     while(1)
     {
         if(!isFifo(fifoPath))
-        {
-            printf("Not fifo ;/\n");
             break;
-        }
+
         nanosleep(&timeBetweenPolls,NULL);
         res = poll(&fds,1,0);
         if(res == 1)
         {
-            //printf("res %d\n revent : %d\n",res,fds.revents);
             if(fds.revents & POLLIN)
             {
                 struct timespec buffer;
@@ -104,12 +103,12 @@ int main(int argc, char* argv[])
             }
             else
             {
-                if(checkAndPrintPollErrors(fds.revents))
+                if(isPollError(fds.revents))
                     break;
             }
         }
     }
-    close(fd);
 
+    close(fd);
     return 0;
 }

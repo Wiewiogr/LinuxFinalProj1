@@ -56,7 +56,7 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
             char lifeTimeArg[25];
             sprintf(lifeTimeArg,"-%c%lf",lifeTimeOpt, getValueFromMinMax(&averageOdbiorcaLifetime));
             char odbiornikName[20];
-            switch(1)//(rand() % 4)
+            switch(rand() % 4)
             {
             case 0:
                 strcpy(odbiornikName,"./wandal.o");
@@ -124,7 +124,7 @@ void childSignalHandler(int sig, siginfo_t *info, void *context)
 void childContinuationHandler(int sig, siginfo_t *info, void *context)
 {
     int childPid = info->si_value.sival_int;
-    printf("signal arg : %d\n",childPid);//*(int*)context);
+    printf("signal arg : %d\n",childPid);
     int status;
     if(waitpid(childPid,&status,WNOHANG) == 0)
     {
@@ -143,50 +143,63 @@ void childContinuationHandler(int sig, siginfo_t *info, void *context)
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
-
-    int opt;
-
-    while ((opt = getopt(argc, argv, "B:D:M:L:O:p:c:l:m:d:")) != -1)
     {
-        switch (opt)
+        int opt;
+        bool Bset=false, Dset=false, Oset=false, lset=false,
+             mset=false, dset=false, pset=false, cset = false;
+        while ((opt = getopt(argc, argv, "B:D:M:L:O:p:c:l:m:d:")) != -1)
         {
-        case 'B':
-            maxNumberOfOdbiorniki = atoi(optarg);
-            break;
-        case 'D':
-            averageTime = strtof(optarg,NULL);
-            break;
-        case 'M':
-            deviation = strtof(optarg,NULL);
-            break;
-        case 'L':
-            strcpy(diagnosticPath,optarg);
-            break;
-        case 'O':
-            strcpy(outputPath,optarg);
-            break;
-        case 'p':
-            strcpy(fifoNameTemplate,optarg);
-            break;
-        case 'c':
-            maxNumberOfFifos = atoi(optarg);
-            break;
-        case 'l':
-            averageOdbiorcaLifetime = getMinMaxValuesFromString(optarg);
-            break;
-        case 'm':
-            averageOdbiorcaMParam = getMinMaxValuesFromString(optarg);
-            break;
-        case 'd':
-            averageOdbiorcaDParam = getMinMaxValuesFromString(optarg);
-            break;
+            switch (opt)
+            {
+            case 'B':
+                maxNumberOfOdbiorniki = atoi(optarg);
+                Bset = true;
+                break;
+            case 'D':
+                averageTime = strtof(optarg,NULL);
+                Dset = true;
+                break;
+            case 'M':
+                deviation = strtof(optarg,NULL);
+                break;
+            case 'L':
+                strcpy(diagnosticPath,optarg);
+                break;
+            case 'O':
+                strcpy(outputPath,optarg);
+                Oset = true;
+                break;
+            case 'p':
+                strcpy(fifoNameTemplate,optarg);
+                pset = true;
+                break;
+            case 'c':
+                maxNumberOfFifos = atoi(optarg);
+                cset = true;
+                break;
+            case 'l':
+                averageOdbiorcaLifetime = getMinMaxValuesFromString(optarg);
+                lset = true;
+                break;
+            case 'm':
+                averageOdbiorcaMParam = getMinMaxValuesFromString(optarg);
+                mset = true;
+                break;
+            case 'd':
+                averageOdbiorcaDParam = getMinMaxValuesFromString(optarg);
+                dset = true;
+                break;
+            }
+        }
+        if(!(Bset&&Dset&&Oset&&lset&&mset&&dset&&pset&&cset))
+        {
+            printf("usage : %s \n-B <int> -D <float> [-M <float>] [-L <string>] -O <string> \n-p <string> -c <int> \n-l <float>[:<float>] -m <float>[:<float>] -d <float>[:<float>]\n",argv[0]);
+            exit(1);
         }
     }
-
     if(strlen(outputPath)!= 0)
     {
         outputFileDescriptor = open(outputPath,O_WRONLY | O_CREAT, 00666);
-        printf("file descriptor %d\n", outputFileDescriptor);
     }
 
     registerHandler(SIGUSR1,childContinuationHandler);

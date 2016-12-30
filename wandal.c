@@ -15,7 +15,7 @@ float averageTime = -1;
 float deviation = 0.0;
 char fifoPath[30];
 
-void removeFilesWritePriviliges(char* path)
+void removeFilesWritePermission(char* path)
 {
     printf("zabierz prawa do zapisu\n");
     chmod(path,00444);
@@ -46,7 +46,7 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
         switch(choice)
         {
         case 0:
-            removeFilesWritePriviliges(fifoPath);
+            removeFilesWritePermission(fifoPath);
             break;
         case 1:
             removeFile(fifoPath);
@@ -95,11 +95,14 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    if(optind+1 == argc)
+
+    if(averageTime < 0 || (optind+1 != argc))
     {
-        strcpy(fifoPath,argv[optind]);
-        printf("fifo path : %s\n", fifoPath);
+        printf("Usage : %s -m <float> <path to fifo>  [-d <float>] [-w/-c/-p <float>]\n",argv[0]);
+        exit(1);
     }
+
+    strcpy(fifoPath,argv[optind]);
 
     createAndSetExitTimer(&timeUntilEnd, endTimerType);
 

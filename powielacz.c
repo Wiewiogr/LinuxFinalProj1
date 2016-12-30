@@ -23,74 +23,63 @@ struct Fifo* fifos;
 
 int currentFifo;
 
+void restoreFile(struct Fifo* fifo)
+{
+    remove(fifo->path);
+    link(fifo->backupPath,fifo->path);
+    fifo->isOpened = false;
+}
+
+void correctFilePermission(struct Fifo* fifo)
+{
+    chmod(fifo->path, 00664);
+}
 
 void controlHandler(int sig, siginfo_t *si, void *uc)
 {
-    printf("controlling!!!\n");
     int runThisTime = 0;
     while(runThisTime++ < numberOfFifos)
     {
         currentFifo %= numberOfFifos;
         {
             struct stat sb;
-
-            printf("statuj\n");
             if (stat(fifos[currentFifo].path, &sb) == -1)
             {
-                printf("nie ma pliku ;/\n");
-                printf("creating new fifo\n");
-                remove(fifos[currentFifo].path);
-                link(fifos[currentFifo].backupPath,fifos[currentFifo].path);
-                fifos[currentFifo].isOpened = false;
-                currentFifo++;
+                printf("%s does not exist, restoring it.\n", fifos[currentFifo].path);
+                restoreFile(&fifos[currentFifo++]);
                 break;
             }
             if(!S_ISFIFO(sb.st_mode))
             {
-                printf("nie fifo\n");
-                printf("creating new fifo\n");
-                remove(fifos[currentFifo].path);
-                link(fifos[currentFifo].backupPath,fifos[currentFifo].path);
-                fifos[currentFifo].isOpened = false;
-                currentFifo++;
+                printf("%s is not fifo ,replacing it with new correct one.\n", fifos[currentFifo].path);
+                restoreFile(&fifos[currentFifo++]);
                 break;
             }
             else if(!(sb.st_mode& S_IWUSR && sb.st_mode & S_IWGRP))
             {
-                printf("nie ma write permission\n");
-                printf("ustawiam na 00664\n");
-                chmod(fifos[currentFifo].path, 00664);
-                currentFifo++;
+                printf("%s does not have write permission, setting on 00664.\n", fifos[currentFifo].path);
+                correctFilePermission(&fifos[currentFifo++]);
                 break;
             }
         }
 
         if(!fifos[currentFifo].isOpened)
         {
-            printf("probujemy otworzyc fifo\n");
+            printf("%s opening - ", fifos[currentFifo].path);
             int fd = open(fifos[currentFifo].path,O_RDWR | O_NONBLOCK);
             if(fd != -1)
             {
-                printf("opening fifo %s\n", fifos[currentFifo].path);
+                printf("succes.\n");
                 fifos[currentFifo].isOpened = true;
                 fifos[currentFifo].fileDescriptor = fd;
             }
             else
             {
-                printf("could not open file\n");
+                printf("failed.\n");
             }
             currentFifo++;
             break;
         }
-       // else if(!isFifo(fifos[currentFifo].path))
-       // {
-       //     printf("creating new fifo\n");
-       //     remove(fifos[currentFifo].path);
-       //     link(fifos[currentFifo].backupPath,fifos[currentFifo].path);
-       //     fifos[currentFifo].isOpened = false;
-       //     currentFifo++;
-       //     break;
-       // }
         currentFifo++;
     }
     setTimer(controlTimerId,&timeUntilControl);
@@ -122,6 +111,12 @@ int main(int argc, char* argv[])
         }
     }
 
+    if(timeBetweenControls == 0 || strlen(fifoNameTemplate) < 1 || numberOfFifos < 1)
+    {
+        printf("usage : %s -f <float> -p <string> -c <int> [-d <string>] \n",argv[0]);
+        exit(1);
+    }
+
     fifos = (struct Fifo*)malloc(numberOfFifos * sizeof(struct Fifo));
 
     for(int i = 0; i < numberOfFifos;i++)
@@ -145,11 +140,6 @@ int main(int argc, char* argv[])
 
     while(1)
     {
-        //if(!isFifo(fifoPath))
-        //{
-        //    printf("Not fifo ;/\n");
-        //    break;
-        //}
         res = poll(&fds,1,-1);
 
         if(fds.revents & POLLIN)
@@ -160,11 +150,8 @@ int main(int argc, char* argv[])
             {
                 if(fifos[i].isOpened)
                 {
-               //     printf("writing to file\n");
                     int result = write(fifos[i].fileDescriptor, &buffer,sizeof(buffer));
-                    //printf(" writing res : %d", result);
                 }
-                //write(1, &buffer,sizeof(buffer));
             }
         }
         else
