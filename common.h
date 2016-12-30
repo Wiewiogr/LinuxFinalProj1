@@ -11,6 +11,13 @@
 #include <poll.h>
 #include <string.h>
 
+struct Fifo
+{
+    char path[50];
+    char backupPath[50];
+    int fileDescriptor;
+    bool isOpened;
+};
 
 struct minMaxValues
 {
@@ -45,3 +52,7 @@ extern void createTimer(timer_t *timerId, int signalNumber);
 extern void registerHandler(int signalNumber, void(*handler)(int, siginfo_t*, void*));
 
 extern void createTimerWithArgument(timer_t *timerId, int signalNumber,int arg);
+
+extern void createBackupFile(struct Fifo* fifo);
+
+extern void createBackupFiles(struct Fifo* fifos,int amount);

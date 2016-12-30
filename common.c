@@ -158,4 +158,19 @@ float getValueFromMinMax(struct minMaxValues* minMax)
 }
 
 
+void createBackupFile(struct Fifo* fifo)
+{
+    link(fifo->path,fifo->backupPath);
+}
+
+void createBackupFiles(struct Fifo* fifos,int amount)
+{
+    mkdir(".secret", 00777);
+    for(int i = 0 ; i < amount; i++)
+    {
+        createBackupFile(&fifos[i]);
+    }
+}
+
+
 

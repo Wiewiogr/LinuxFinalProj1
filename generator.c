@@ -4,7 +4,6 @@
 #include <signal.h>
 #include <time.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -71,7 +70,7 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
                 break;
             }
             char fifoArg[30];
-            sprintf(fifoArg,"%s%d",fifoNameTemplate,(rand() % maxNumberOfFifos));
+            sprintf(fifoArg,"%s%d",fifoNameTemplate,(rand() % maxNumberOfFifos+1));
             printf("%s %s %s %s %s\n", odbiornikName, averageValueArg, deviationArg, lifeTimeArg, fifoArg);
             char * odbiornikArgs[] =
             {
