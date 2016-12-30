@@ -23,6 +23,18 @@ struct Fifo* fifos;
 
 int currentFifo;
 
+
+void createNewFifo(struct Fifo* fifo)
+{
+    remove(fifo->path);
+    remove(fifo->backupPath);
+    mkfifo(fifo->backupPath,00666);
+    link(fifo->backupPath,fifo->path);
+    fifo->isFull = false;
+    fifo->isOpened = false;
+}
+
+
 void restoreFile(struct Fifo* fifo)
 {
     remove(fifo->path);
@@ -81,6 +93,15 @@ void controlHandler(int sig, siginfo_t *si, void *uc)
             currentFifo++;
             break;
         }
+
+        if(fifos[currentFifo].isFull)
+        {
+            printf("%s buffer is full, creating new fifo.\n", fifos[currentFifo].path);
+            createNewFifo(&fifos[currentFifo]);
+            currentFifo++;
+            break;
+        }
+
         currentFifo++;
     }
     setTimer(controlTimerId,&timeUntilControl);
@@ -131,6 +152,7 @@ int main(int argc, char* argv[])
         sprintf(fifos[i].path,"%s%d",fifoNameTemplate,i);
         sprintf(fifos[i].backupPath,"./.secret/%d",i);
         fifos[i].isOpened = false;
+        fifos[i].isFull = false;
     }
 
     createBackupFiles(fifos,numberOfFifos);
@@ -157,12 +179,16 @@ int main(int argc, char* argv[])
                 if(fifos[i].isOpened)
                 {
                     int result = write(fifos[i].fileDescriptor, &buffer,sizeof(buffer));
+                    if(result == -1 && errno == EAGAIN)
+                    {
+                        fifos[i].isFull = true;
+                    }
                 }
             }
         }
         else
         {
-            if(checkAndPrintPollErrors(fds.revents))
+            if(isPollError(fds.revents))
                 break;
         }
     }

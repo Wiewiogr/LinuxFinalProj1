@@ -17,6 +17,7 @@ struct Fifo
     char backupPath[50];
     int fileDescriptor;
     bool isOpened;
+    bool isFull;
 };
 
 struct minMaxValues
