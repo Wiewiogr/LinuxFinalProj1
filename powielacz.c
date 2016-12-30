@@ -37,6 +37,7 @@ void correctFilePermission(struct Fifo* fifo)
 
 void controlHandler(int sig, siginfo_t *si, void *uc)
 {
+    fflush(stdout);
     int runThisTime = 0;
     while(runThisTime++ < numberOfFifos)
     {
@@ -113,8 +114,14 @@ int main(int argc, char* argv[])
 
     if(timeBetweenControls == 0 || strlen(fifoNameTemplate) < 1 || numberOfFifos < 1)
     {
-        printf("usage : %s -f <float> -p <string> -c <int> [-d <string>] \n",argv[0]);
+        fprintf(stderr,"usage : %s -f <float> -p <string> -c <int> [-d <string>] \n",argv[0]);
         exit(1);
+    }
+
+    if(strlen(diagnosticPath)!= 0)
+    {
+        int descriptor = open(diagnosticPath,O_WRONLY | O_CREAT, 00666);
+        dup2(descriptor,1);
     }
 
     fifos = (struct Fifo*)malloc(numberOfFifos * sizeof(struct Fifo));
@@ -123,7 +130,6 @@ int main(int argc, char* argv[])
     {
         sprintf(fifos[i].path,"%s%d",fifoNameTemplate,i);
         sprintf(fifos[i].backupPath,"./.secret/%d",i);
-        fifos[i].fileDescriptor = -1;
         fifos[i].isOpened = false;
     }
 

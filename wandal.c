@@ -17,19 +17,16 @@ char fifoPath[30];
 
 void removeFilesWritePermission(char* path)
 {
-    printf("zabierz prawa do zapisu\n");
     chmod(path,00444);
 }
 
 void removeFile(char* path)
 {
     remove(path);
-    printf("usun plik\n");
 }
 
 void replaceFifoWithRegularFile(char* path)
 {
-    printf("podmien plik\n");
     remove(path);
     creat(path,00666);
 }
@@ -57,7 +54,9 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
         }
     }
     else
-        printf("not fifo ;/\n");
+    {
+        exit(1);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -98,7 +97,7 @@ int main(int argc, char* argv[])
 
     if(averageTime < 0 || (optind+1 != argc))
     {
-        printf("Usage : %s -m <float> <path to fifo>  [-d <float>] [-w/-c/-p <float>]\n",argv[0]);
+        fprintf(stderr,"Usage : %s -m <float> <path to fifo>  [-d <float>] [-w/-c/-p <float>]\n",argv[0]);
         exit(1);
     }
 

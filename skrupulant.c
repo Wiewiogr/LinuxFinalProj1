@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 
     if(optind+1 != argc)
     {
-        printf("Usage : %s <path to fifo> [-w/-c/-p <float>]\n",argv[0]);
+        fprintf(stderr,"Usage : %s <path to fifo> [-w/-c/-p <float>]\n",argv[0]);
         exit(1);
     }
 
@@ -64,10 +64,8 @@ int main(int argc, char* argv[])
     while(1)
     {
         if(!isFifo(fifoPath))
-        {
-            printf("Not fifo ;/\n");
             break;
-        }
+
         res = poll(&fds,1,0);
         if(fds.revents & POLLIN)
         {

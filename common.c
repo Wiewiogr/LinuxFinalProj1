@@ -85,7 +85,18 @@ void setTimer(timer_t timerId,struct itimerspec *timeSpec)
 
 void showTimeDifferenceReport(struct timespec* time)
 {
-    printf("!!REPORT!!! sec : %ld nsec: %ld \n",time->tv_sec, time->tv_nsec);
+    struct timespec currentTime;
+    clock_gettime(CLOCK_REALTIME,&currentTime);
+    long sec = currentTime.tv_sec - time->tv_sec;
+    long nsec = currentTime.tv_nsec - time->tv_nsec;
+    if(nsec < 0)
+    {
+        nsec = 1000000000 - nsec;
+        sec--;
+    }
+    printf("!!REPORT!!!\ntime received : %ld.%ld ",time->tv_sec, time->tv_nsec);
+    printf("current time %ld.%ld \n",currentTime.tv_sec, currentTime.tv_nsec);
+    printf("time difference %ld.%ld\n",sec,nsec);
 }
 
 bool isPollError(short revents)

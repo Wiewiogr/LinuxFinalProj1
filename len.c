@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
     if(averageTime < 0 || (optind+1 != argc))
     {
-        printf("Usage : %s -m <float> <path to fifo>  [-d <float>] [-w/-c/-p <float>]\n",argv[0]);
+        fprintf(stderr,"usage : %s -m <float> <path to fifo>  [-d <float>] [-w/-c/-p <float>]\n",argv[0]);
         exit(1);
     }
 

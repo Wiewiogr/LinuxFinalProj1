@@ -71,7 +71,7 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
             }
             char fifoArg[30];
             sprintf(fifoArg,"%s%d",fifoNameTemplate,(rand() % maxNumberOfFifos+1));
-            printf("%s %s %s %s %s\n", odbiornikName, averageValueArg, deviationArg, lifeTimeArg, fifoArg);
+            printf("created - %s %s %s %s %s\n", odbiornikName, averageValueArg, deviationArg, lifeTimeArg, fifoArg);
             char * odbiornikArgs[] =
             {
                 odbiornikName,
@@ -88,16 +88,13 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
                 dup2(outputFileDescriptor,1);
             }
 
-            if(execve(odbiornikName,odbiornikArgs,newenviron) == -1)
-            {
-                printf("zjeblo sie \n");
-            }
+            execve(odbiornikName,odbiornikArgs,newenviron);
             exit(1);
         }
         numberOfOdbiorniki++;
-        printf("ilosc czildrenow %d/%d\n",numberOfOdbiorniki,maxNumberOfOdbiorniki);
-
+        printf("number of receivers alive : %d/%d\n",numberOfOdbiorniki,maxNumberOfOdbiorniki);
     }
+    fflush(stdout);
 }
 
 void childSignalHandler(int sig, siginfo_t *info, void *context)
@@ -105,12 +102,12 @@ void childSignalHandler(int sig, siginfo_t *info, void *context)
     int code = info->si_code;
     if(code == CLD_KILLED || code == CLD_EXITED)
     {
-        printf("Child killed or exited\n");
+        printf("receiver with pid %d died\n",info->si_pid);
         numberOfOdbiorniki--;
     }
     else if(code == CLD_STOPPED)
     {
-        printf("Child stopped\n");
+        printf("receiver with pid %d stopped\n",info->si_pid);
         timer_t continueTimer;
 
         createTimerWithArgument(&continueTimer,SIGUSR1,info->si_pid);
@@ -119,34 +116,32 @@ void childSignalHandler(int sig, siginfo_t *info, void *context)
         setTimer(continueTimer,&timeUntilCreate);
 
     }
+    fflush(stdout);
 }
 
 void childContinuationHandler(int sig, siginfo_t *info, void *context)
 {
     int childPid = info->si_value.sival_int;
-    printf("signal arg : %d\n",childPid);
     int status;
     if(waitpid(childPid,&status,WNOHANG) == 0)
     {
         if(!WIFCONTINUED(status))
         {
             kill(childPid,SIGCONT);
-            printf("Killlin1\n");
-        }
-        else
-        {
-            printf(" not Killlin1\n");
+            printf("receiver with pid %d continued\n",childPid);
         }
     }
+    fflush(stdout);
 }
 
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
+
     {
         int opt;
         bool Bset=false, Dset=false, Oset=false, lset=false,
-             mset=false, dset=false, pset=false, cset = false;
+             mset=false, dset=false, pset=false, cset=false;
         while ((opt = getopt(argc, argv, "B:D:M:L:O:p:c:l:m:d:")) != -1)
         {
             switch (opt)
@@ -191,15 +186,23 @@ int main(int argc, char* argv[])
                 break;
             }
         }
-        if(!(Bset&&Dset&&Oset&&lset&&mset&&dset&&pset&&cset))
+
+        if(!(Bset && Dset && Oset && lset && mset && dset && pset && cset))
         {
-            printf("usage : %s \n-B <int> -D <float> [-M <float>] [-L <string>] -O <string> \n-p <string> -c <int> \n-l <float>[:<float>] -m <float>[:<float>] -d <float>[:<float>]\n",argv[0]);
+            fprintf(stderr,"usage : %s \n-B <int> -D <float> [-M <float>] [-L <string>] -O <string> \n-p <string> -c <int> \n-l <float>[:<float>] -m <float>[:<float>] -d <float>[:<float>]\n",argv[0]);
             exit(1);
         }
     }
+
     if(strlen(outputPath)!= 0)
     {
         outputFileDescriptor = open(outputPath,O_WRONLY | O_CREAT, 00666);
+    }
+
+    if(strlen(diagnosticPath)!= 0)
+    {
+        int descriptor = open(diagnosticPath,O_WRONLY | O_CREAT, 00666);
+        dup2(descriptor,1);
     }
 
     registerHandler(SIGUSR1,childContinuationHandler);
