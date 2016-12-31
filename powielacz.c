@@ -47,6 +47,12 @@ void correctFilePermission(struct Fifo* fifo)
     chmod(fifo->path, 00664);
 }
 
+bool haveWritePermission(mode_t statMode)
+{
+    return statMode & S_IWUSR && statMode & S_IWGRP;
+}
+
+
 void controlHandler(int sig, siginfo_t *si, void *uc)
 {
     fflush(stdout);
@@ -68,7 +74,7 @@ void controlHandler(int sig, siginfo_t *si, void *uc)
                 restoreFile(&fifos[currentFifo++]);
                 break;
             }
-            else if(!(sb.st_mode& S_IWUSR && sb.st_mode & S_IWGRP))
+            else if(!haveWritePermission(sb.st_mode))
             {
                 printf("%s does not have write permission, setting on 00664.\n", fifos[currentFifo].path);
                 correctFilePermission(&fifos[currentFifo++]);
@@ -158,7 +164,6 @@ int main(int argc, char* argv[])
     createBackupFiles(fifos,numberOfFifos);
 
     struct pollfd fds = createPollfdStruct(0);
-    int res;
 
     registerHandler(SIGALRM,controlHandler);
     createTimer(&controlTimerId,SIGALRM);
@@ -166,10 +171,10 @@ int main(int argc, char* argv[])
     convertFloatToTimeSpec(timeBetweenControls,&timeUntilControl.it_value);
     setTimer(controlTimerId,&timeUntilControl);
 
+    int res;
     while(1)
     {
         res = poll(&fds,1,-1);
-
         if(fds.revents & POLLIN)
         {
             struct timespec buffer;
@@ -180,9 +185,7 @@ int main(int argc, char* argv[])
                 {
                     int result = write(fifos[i].fileDescriptor, &buffer,sizeof(buffer));
                     if(result == -1 && errno == EAGAIN)
-                    {
                         fifos[i].isFull = true;
-                    }
                 }
             }
         }
@@ -192,7 +195,7 @@ int main(int argc, char* argv[])
                 break;
         }
     }
-    free(fifos);
 
+    free(fifos);
     return 0;
 }

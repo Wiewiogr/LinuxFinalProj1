@@ -64,8 +64,6 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    struct sigaction sa; // ???
-
     createTimerAndRegisterHandler(&writeTimerId,timerHandler);
 
     float time = randomizeTime(averageTime,deviation);

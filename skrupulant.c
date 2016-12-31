@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         {
             struct timespec buffer;
             read(fds.fd,&buffer,sizeof(buffer));
-            showTimeDifferenceReport(&buffer);
+            showTimeDifferenceReport(&buffer, argv[0], fifoPath);
         }
         else
         {

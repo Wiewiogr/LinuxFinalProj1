@@ -1,27 +1,29 @@
-all: generator.o datownik.o powielacz.o odbiorniki
+COMMON_FLAGS = -Wl,-rpath=./ -L./ -lCommon
 
-powielacz.o: powielacz.c libCommon.so
-	gcc -Wl,-rpath=./ -o powielacz.o powielacz.c -L./ -lCommon
+all: generator.out datownik.out powielacz.out odbiorniki
 
-datownik.o: datownik.c libCommon.so
-	gcc -Wl,-rpath=./ -o datownik.o datownik.c -L./ -lCommon
+powielacz.out: powielacz.c libCommon.so
+	gcc -o powielacz.out powielacz.c $(COMMON_FLAGS)
 
-generator.o: generator.c libCommon.so
-	gcc -Wl,-rpath=./ -o generator.o generator.c -L./ -lCommon
+datownik.out: datownik.c libCommon.so
+	gcc -o datownik.out datownik.c $(COMMON_FLAGS)
 
-odbiorniki: skrupulant.o len.o wandal.o
+generator.out: generator.c libCommon.so
+	gcc -o generator.out generator.c $(COMMON_FLAGS)
 
-skrupulant.o: skrupulant.c libCommon.so
-	gcc -Wl,-rpath=./ -o skrupulant.o skrupulant.c -L./ -lCommon
+odbiorniki: skrupulant.out len.out wandal.out
 
-len.o: len.c libCommon.so
-	gcc -Wl,-rpath=./ -o len.o len.c -L./ -lCommon
+skrupulant.out: skrupulant.c libCommon.so
+	gcc -o skrupulant.out skrupulant.c $(COMMON_FLAGS)
 
-wandal.o: wandal.c libCommon.so
-	gcc -Wl,-rpath=./ -o wandal.o wandal.c -L./ -lCommon
+len.out: len.c libCommon.so
+	gcc -o len.out len.c $(COMMON_FLAGS)
+
+wandal.out: wandal.c libCommon.so
+	gcc -o wandal.out wandal.c $(COMMON_FLAGS)
 
 libCommon.so : common.c
 	gcc -fPIC -shared -o libCommon.so common.c -lm -lrt
 
 clean: 
-	rm *.o *.so
+	rm *.out *.so

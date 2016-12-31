@@ -34,8 +34,6 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
 
     if(numberOfOdbiorniki < maxNumberOfOdbiorniki)
     {
-        if(fork() == 0)
-        {
             char averageValueArg[20];
             sprintf(averageValueArg,"-m%lf",getValueFromMinMax(&averageOdbiorcaMParam));
             char deviationArg[20];
@@ -59,14 +57,14 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
             switch(rand() % 4)
             {
             case 0:
-                strcpy(odbiornikName,"./wandal.o");
+                strcpy(odbiornikName,"./wandal.out");
                 break;
             case 1:
             case 2:
-                strcpy(odbiornikName,"./len.o");
+                strcpy(odbiornikName,"./len.out");
                 break;
             case 3:
-                strcpy(odbiornikName,"./skrupulant.o");
+                strcpy(odbiornikName,"./skrupulant.out");
                 break;
             }
             char fifoArg[30];
@@ -81,14 +79,15 @@ void createTimerHandler(int sig, siginfo_t *info, void *context)
                 fifoArg,
                 (char *) 0
             };
-            char *newenviron[] = { NULL };
 
+        if(fork() == 0)
+        {
             if(outputFileDescriptor != -1)
             {
                 dup2(outputFileDescriptor,1);
             }
 
-            execve(odbiornikName,odbiornikArgs,newenviron);
+            execvp(odbiornikName,odbiornikArgs);
             exit(1);
         }
         numberOfOdbiorniki++;
@@ -189,7 +188,10 @@ int main(int argc, char* argv[])
 
         if(!(Bset && Dset && Oset && lset && mset && dset && pset && cset))
         {
-            fprintf(stderr,"usage : %s \n-B <int> -D <float> [-M <float>] [-L <string>] -O <string> \n-p <string> -c <int> \n-l <float>[:<float>] -m <float>[:<float>] -d <float>[:<float>]\n",argv[0]);
+            fprintf(stderr,"usage : %s \n"
+                    "-B <int> -D <float> [-M <float>] [-L <string>] -O <string> \n"
+                    "-p <string> -c <int> \n"
+                    "-l <float>[:<float>] -m <float>[:<float>] -d <float>[:<float>]\n",argv[0]);
             exit(1);
         }
     }

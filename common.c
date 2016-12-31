@@ -83,7 +83,7 @@ void setTimer(timer_t timerId,struct itimerspec *timeSpec)
         perror("timer_settime");
 }
 
-void showTimeDifferenceReport(struct timespec* time)
+void showTimeDifferenceReport(struct timespec* time, char * odbiornikName, char* fifoPath)
 {
     struct timespec currentTime;
     clock_gettime(CLOCK_REALTIME,&currentTime);
@@ -94,7 +94,8 @@ void showTimeDifferenceReport(struct timespec* time)
         nsec = 1000000000 - nsec;
         sec--;
     }
-    printf("!!REPORT!!!\ntime received : %ld.%ld ",time->tv_sec, time->tv_nsec);
+    printf("!!REPORT from %s with pid %d reading from %s!!!\n", odbiornikName, getpid(), fifoPath);
+    printf("time received : %ld.%ld ",time->tv_sec, time->tv_nsec);
     printf("current time %ld.%ld \n",currentTime.tv_sec, currentTime.tv_nsec);
     printf("time difference %ld.%ld\n",sec,nsec);
 }
@@ -140,7 +141,6 @@ bool isFifo(char* path)
     struct stat sb;
     if (stat(path, &sb) == -1)
     {
-    perror("stat");
     return false;
     }
     if(!S_ISFIFO(sb.st_mode))

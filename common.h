@@ -36,7 +36,7 @@ extern void createTimerAndRegisterHandler(timer_t *timerId, void(*handler)(int, 
 
 extern void setTimer(timer_t,struct itimerspec*);
 
-extern void showTimeDifferenceReport(struct timespec*);
+extern void showTimeDifferenceReport(struct timespec*, char *, char *);
 
 extern bool checkAndPrintPollErrors(short revents);
 

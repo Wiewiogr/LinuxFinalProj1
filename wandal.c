@@ -36,11 +36,10 @@ void timerHandler(int sig, siginfo_t *si, void *uc)
     float time = randomizeTime(averageTime,deviation);
     convertFloatToTimeSpec(time,&timeUntilDestruction.it_value);
     setTimer(destructionTimerId,&timeUntilDestruction);
-    int choice = rand() % 3;
 
     if(isFifo(fifoPath))
     {
-        switch(choice)
+        switch(rand() % 3)
         {
         case 0:
             removeFilesWritePermission(fifoPath);
