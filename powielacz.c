@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 
     fifos = (struct Fifo*)malloc(numberOfFifos * sizeof(struct Fifo));
 
-    for(int i = 0; i < numberOfFifos;i++)
+    for(int i = 1; i <= numberOfFifos;i++)
     {
         sprintf(fifos[i].path,"%s%d",fifoNameTemplate,i);
         sprintf(fifos[i].backupPath,"./.secret/%d",i);
