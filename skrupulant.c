@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
     int fd;
     if((fd = open(fifoPath,O_RDWR))== -1)
-        perror("open");
+        exit(1);
 
     struct pollfd fds = createPollfdStruct(fd);
     int res;
